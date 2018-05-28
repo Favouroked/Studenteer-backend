@@ -207,17 +207,24 @@ router.get('/user/:id', (req, res) => {
     })
 });
 
+// dunno what wrong with it
 router.post('/enroll', (req, res) => {
     let student_id = req.body.student_id;
     let course_id = req.body.course_id;
-    StudentCourse.create({course_id: course_id, progress: 0}, (err, stucourse) => {
-        if (err) throw err;
+    let studentc = new StudentCourse();
+    studentc.course_id = course_id;
+    studentc.progress = 0;
+    studentc.save((err, sc) => {
         User.findOne({_id: student_id}, (err, student) => {
-            student.courses.push(stucourse._id);
+            if (err) throw err;
+            student.courses.push(sc._id);
         });
     });
     Course.findOne({_id: course_id}, (err, course) => {
+        if (err) throw err;
+        console.log(course);
         course.students.push(student_id);
+        console.log("Pushed 2");
         res.json({success: "true"});
     })
 });
