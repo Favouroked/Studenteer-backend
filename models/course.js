@@ -7,6 +7,7 @@ const CourseSchema = new Schema({
     description: {type: String},
     instructor: {type: Schema.Types.ObjectId, ref: 'User'},
     materials: [{type: String}],
+    image: {type: String},
     students: [{type: Schema.Types.ObjectId, ref: 'User'}],
 });
 

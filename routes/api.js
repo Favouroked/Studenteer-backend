@@ -132,6 +132,7 @@ router.post('/create-course', (req, res) => {
     course.instructor = req.body.user_id;
     course.category = req.body.category;
     course.title = req.body.title;
+    course.image = req.body.image;
     course.description = req.body.description;
     for (var i = 0; i < req.body.materials.length; i++) {
         course.materials.push(req.body.materials[i]);
