@@ -60,6 +60,9 @@ router.post('/user/signup', upload.single('profile_pic'), (req, res) => {
     if (!is_instructor) {
         return res.json({error: "true", error_msg: "103"})
     }
+    let city = req.body.details.city;
+    let state = req.body.details.state;
+    let phone_number = req.body.details.phone_number;
     let profile_pic = req.file.url;
     if (!profile_pic) {
         return res.json({error: "true", error_msg: "103"})
@@ -84,6 +87,9 @@ router.post('/user/signup', upload.single('profile_pic'), (req, res) => {
                         username: username,
                         first_name: first_name,
                         last_name: last_name,
+                        city: city,
+                        state: state,
+                        phone_number: phone_number,
                         is_instructor: is_instructor,
                         profile_pic: profile_pic
                     };
@@ -218,15 +224,17 @@ router.post('/enroll', (req, res) => {
         User.findOne({_id: student_id}, (err, student) => {
             if (err) throw err;
             student.courses.push(sc._id);
+            student.save();
+            Course.findOne({_id: course_id}, (err, course) => {
+                if (err) throw err;
+                console.log(course);
+                course.students.push(student_id);
+                course.save();
+                console.log("Pushed 2");
+                res.json({success: "true"});
+            })
         });
     });
-    Course.findOne({_id: course_id}, (err, course) => {
-        if (err) throw err;
-        console.log(course);
-        course.students.push(student_id);
-        console.log("Pushed 2");
-        res.json({success: "true"});
-    })
 });
 
 router.get('/get-courses/:id', (req, res) => {
