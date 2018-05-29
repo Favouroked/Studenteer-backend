@@ -36,10 +36,7 @@ router.get('/', function (req, res, next) {
 router.post('/user/signup', upload.single('profile_pic'), (req, res) => {
     console.log(req.body);
     req.body.details = JSON.parse(req.body.details);
-    let email = req.body.details.email;
-    if (!email) {
-        return res.json({error: "true", error_msg: "103"})
-    }
+
     let password = req.body.details.password;
     if (!password) {
         return res.json({error: "true", error_msg: "103"})
@@ -68,42 +65,33 @@ router.post('/user/signup', upload.single('profile_pic'), (req, res) => {
         return res.json({error: "true", error_msg: "103"})
     }
 
-    User.findOne({email: email}, (err, user) => {
-        if (err) throw err;
-
-        if (user) {
-            res.json({error: "true", error_msg: "101"});
+    User.findOne({username: username}, (err1, user1) => {
+        if (err1) throw err1;
+        if (user1) {
+            res.json({error: "true", error_msg: "102"})
         } else {
 
-            User.findOne({username: username}, (err1, user1) => {
-                if (err1) throw err1;
-                if (user1) {
-                    res.json({error: "true", error_msg: "102"})
-                } else {
-
-                    const newUser = {
-                        email: email,
-                        password: password,
-                        username: username,
-                        first_name: first_name,
-                        last_name: last_name,
-                        city: city,
-                        state: state,
-                        phone_number: phone_number,
-                        is_instructor: is_instructor,
-                        profile_pic: profile_pic
-                    };
-                    bcrypt.hash(password, 10, (err2, hash) => {
-                        if (err2) throw err2;
-                        newUser.password = hash;
-                        User.create(newUser, (err3, user3) => {
-                            if (err3) throw err3;
-                            let newOne = {"success": "true", metadata: user3};
-                            res.json(newOne);
-                        })
-                    });
-                }
-            })
+            const newUser = {
+                email: email,
+                password: password,
+                username: username,
+                first_name: first_name,
+                last_name: last_name,
+                city: city,
+                state: state,
+                phone_number: phone_number,
+                is_instructor: is_instructor,
+                profile_pic: profile_pic
+            };
+            bcrypt.hash(password, 10, (err2, hash) => {
+                if (err2) throw err2;
+                newUser.password = hash;
+                User.create(newUser, (err3, user3) => {
+                    if (err3) throw err3;
+                    let newOne = {"success": "true", metadata: user3};
+                    res.json(newOne);
+                })
+            });
         }
     })
 });
@@ -186,7 +174,10 @@ router.post('my-courses', (req, res) => {
 });
 
 router.get('/all-courses', (req, res) => {
-    Course.find({}, (err, courses) => {
+    Course.find({})
+        .populate('students')
+        .populate('instructor')
+        .exec((err, courses) => {
         if (err) throw err;
         res.json(courses);
     });
