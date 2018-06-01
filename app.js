@@ -11,7 +11,9 @@ var apiRouter = require('./routes/api');
 
 var app = express();
 
-mongoose.connect('mongodb://localhost/JAN', (err) => {
+// let dbUrl = `mongodb://testuser:testpass1@ds139970.mlab.com:39970/studenteer`;
+let dbUrl = `mongodb://localhost/JAN`;
+mongoose.connect(dbUrl, (err) => {
     if (err) throw err;
     console.log('Connected to database successfully');
 });

@@ -9,6 +9,13 @@ const CourseSchema = new Schema({
     materials: [{type: String}],
     image: {type: String},
     students: [{type: Schema.Types.ObjectId, ref: 'User'}],
+    ratings: [{type: Schema.Types.ObjectId, ref: 'Rating'}],
+    rating_number: {type: Number}
+});
+
+CourseSchema.pre('save', (next)=> {
+    console.log(`Saving the course with id ${JSON.stringify(this)}`);
+    next();
 });
 
 const Course = module.exports = mongoose.model('Course', CourseSchema);

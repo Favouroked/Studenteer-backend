@@ -72,7 +72,6 @@ router.post('/user/signup', upload.single('profile_pic'), (req, res) => {
         } else {
 
             const newUser = {
-                email: email,
                 password: password,
                 username: username,
                 first_name: first_name,
@@ -97,15 +96,15 @@ router.post('/user/signup', upload.single('profile_pic'), (req, res) => {
 });
 
 router.post('/user/login', function (req, res) {
-    let email = req.body.email;
-    if (!email) {
+    let username = req.body.username;
+    if (!username) {
         return res.json({error: "true", error_msg: "202"})
     }
     let password = req.body.password;
     if (!password) {
         return res.json({error: "true", error_msg: "202"})
     }
-    User.findOne({email: email}, (err, user) => {
+    User.findOne({username: username}, (err, user) => {
         if (err) throw err;
         if (!user) {
             return res.json({error: "true", error_msg: "203"});
@@ -128,6 +127,8 @@ router.post('/create-course', (req, res) => {
     course.title = req.body.title;
     course.image = req.body.image;
     course.description = req.body.description;
+    course.ratings = [];
+    course.rating_number = 0;
     for (var i = 0; i < req.body.materials.length; i++) {
         course.materials.push(req.body.materials[i]);
     }
@@ -142,25 +143,36 @@ router.post('/add-message', (req, res) => {
     let user = req.body.user_id;
     let body = req.body.body;
     let timestamp = Date.now();
+    console.log(req.body);
     let newMessage = {
         course: course_id,
         instructor: user,
+        user: user,
         body: body,
         timestamp: timestamp
     };
     Message.create(newMessage, (err, msg) => {
         if (err) throw err;
-        res.redirect('/api/all-messages');
+        Message.find({course: course_id})
+            .populate('user')
+            .exec((err1, msg1) => {
+                if (err1) throw err1;
+                return res.json(msg1);
+            })
     })
 });
 
 router.post('/all-messages', (req, res) => {
+    console.log(req.body);
     let course_id = req.body.course_id;
-    Message.find({course: course_id}, (err, msg) => {
+    Message.find({course: course_id})
+        .populate('user')
+        .exec((err, msg) => {
         if (err) throw err;
-        res.json(msg);
+        return res.json(msg);
     })
 });
+
 
 router.post('my-courses', (req, res) => {
     let student_id = req.body.student_id;
@@ -177,6 +189,7 @@ router.get('/all-courses', (req, res) => {
     Course.find({})
         .populate('students')
         .populate('instructor')
+        .populate('ratings')
         .exec((err, courses) => {
         if (err) throw err;
         res.json(courses);
@@ -240,7 +253,10 @@ router.post('/rate', (req, res) => {
     let instructor = req.body.instructor;
     let student = req.body.student;
     let stars = req.body.stars;
-    Rating.create({instructor: instructor, student: student, stars: stars}, (err, rating) => {
+    let course = req.body.course;
+    console.log(req.body);
+    let ratee = new Rating({instructor: instructor, course: course, student: student, stars: stars});
+    ratee.save((err, rating) => {
         if (err) throw err;
         res.json(rating);
     })
